@@ -86,8 +86,6 @@ else:
             st.toast("🧹 Logs cleared on app start", icon="🧾")
     except Exception as e:
         st.warning(f"Log cleaner error: {e}")
-except Exception as e:
-    st.warning(f"Log cleaner error: {e}")
 
 if uploaded_files and job_description:
     os.makedirs("data", exist_ok=True)  # ✅ Ensure 'data' folder exists
@@ -204,7 +202,7 @@ if uploaded_files and job_description:
     st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv")
 
     with st.expander("📊 Insights Dashboard"):
-        import matplotlib.pyplot as plt
+        import matplotlib.pyplot as plt # type: ignore
         from collections import Counter
 
         st.write("### 📈 Resume Score Distribution")
