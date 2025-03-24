@@ -10,6 +10,8 @@ from src.match_score import get_fit_score
 from src.bias_checker import detect_bias
 from src.explain import get_shap_values
 
+os.makedirs("data", exist_ok=True)
+
 st.set_page_config(page_title="AI Resume Screener", layout="wide")
 
 st.markdown("""
@@ -121,4 +123,4 @@ if uploaded_files and job_description:
     st.markdown("<br>", unsafe_allow_html=True)
 
     csv_all = df.to_csv(index=False).encode("utf-8")
-    st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv"
+    st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv")
