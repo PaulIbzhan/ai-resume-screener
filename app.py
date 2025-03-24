@@ -1,4 +1,4 @@
-import streamlit as st # type: ignore
+import streamlit as st  # type: ignore
 import pandas as pd
 import os
 import csv
@@ -11,6 +11,15 @@ from src.bias_checker import detect_bias
 from src.explain import get_shap_values
 
 st.set_page_config(page_title="AI Resume Screener", layout="wide")
+
+st.markdown("""
+    <style>
+    html, body, [class*="css"]  {
+        font-family: 'sans-serif' !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.markdown("""
     <h2 style='font-family:sans-serif; font-weight:bold;'>📄 AI-Powered Resume Screener</h2>
 """, unsafe_allow_html=True)
@@ -20,15 +29,15 @@ st.markdown("""
     <h3 style='font-family:sans-serif; font-weight:bold;'>📌 Job Information</h3>
 """, unsafe_allow_html=True)
 
-job_title = st.text_input("🧠 Job Title", placeholder="e.g., Senior Data Analyst (Remote)")
-job_description = st.text_area("📋 Job Description", placeholder="Paste the full JD here...")
+job_title = st.text_input("🧠 Job Title", placeholder="e.g., Senior Data Analyst (Remote)", label_visibility="visible")
+job_description = st.text_area("📋 Job Description", placeholder="Paste the full JD here...", label_visibility="visible")
 
 # 📂 File Upload
 st.markdown("""
     <h4 style='font-family:sans-serif;'>📁 Upload Resumes (PDF/DOCX)</h4>
 """, unsafe_allow_html=True)
 
-uploaded_files = st.file_uploader("Drag and drop files here", type=["pdf", "docx"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Drag and drop files here", type=["pdf", "docx"], accept_multiple_files=True, label_visibility="visible")
 
 def extract_email(text):
     emails = re.findall(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
@@ -78,7 +87,7 @@ if uploaded_files and job_description:
     st.markdown("""
         <h3 style='font-family:sans-serif;'>🔢 Select Top N Resumes</h3>
     """, unsafe_allow_html=True)
-    top_n = st.slider("Choose how many top resumes to view:", min_value=1, max_value=len(df), value=5)
+    top_n = st.slider("Choose how many top resumes to view:", min_value=1, max_value=len(df), value=5, label_visibility="visible")
     top_df = df.head(top_n).reset_index(drop=True)
 
     st.markdown("""
