@@ -8,3 +8,4 @@ spacy
 shap
 email-validator
 pdfplumber
+sentence-transformers
