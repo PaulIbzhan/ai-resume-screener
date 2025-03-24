@@ -27,7 +27,6 @@ st.markdown("""
     <h2 style='font-family:sans-serif; font-weight:bold;'>📄 AI-Powered Resume Screener</h2>
 """, unsafe_allow_html=True)
 
-# 📌 Job Title & Description
 st.markdown("""
     <h3 style='font-family:sans-serif; font-weight:bold;'>📌 Job Information</h3>
 """, unsafe_allow_html=True)
@@ -35,7 +34,6 @@ st.markdown("""
 job_title = st.text_input("🧠 Job Title", placeholder=" ", label_visibility="visible")
 job_description = st.text_area("📋 Job Description", placeholder="Paste the full JD here...", label_visibility="visible")
 
-# ⚙️ Settings Panel
 st.markdown("""
     <h3 style='font-family:sans-serif;'>⚙️ Settings</h3>
 """, unsafe_allow_html=True)
@@ -45,11 +43,13 @@ with st.expander("⚙️ App Settings"):
     file_types = st.multiselect("📂 Allowed File Types", ["pdf", "docx"], default=["pdf", "docx"])
     archive_logs = st.checkbox("🗄️ Auto-archive daily logs", value=True)
 
-    if st.button("🔄 Reset Settings"):
+    reset_triggered = st.button("🔄 Reset Settings")
+    if reset_triggered:
+        st.cache_data.clear()
         st.session_state.clear()
         st.rerun()
 
-# 📂 File Upload
+
 st.markdown("""
     <h4 style='font-family:sans-serif;'>📁 Upload Resumes (PDF/DOCX)</h4>
 """, unsafe_allow_html=True)
@@ -69,7 +69,6 @@ def extract_email(text):
 
 results = []
 
-# Log Cleaner (Auto on Start or Archive)
 import datetime
 if archive_logs:
     try:
@@ -88,7 +87,7 @@ else:
         st.warning(f"Log cleaner error: {e}")
 
 if uploaded_files and job_description:
-    os.makedirs("data", exist_ok=True)  # ✅ Ensure 'data' folder exists
+    os.makedirs("data", exist_ok=True)
 
     import pathlib
     from zipfile import ZipFile
@@ -117,7 +116,7 @@ if uploaded_files and job_description:
             email_found = extract_email(resume_text)
 
             result = {
-                "ResumeFile": file.name,
+                "ResumeFile": filename.name,
                 "Email": email_found,
                 "FitScore": int(round(score * 100)),
                 "MatchedKeywords": ", ".join(matched_keywords),
@@ -127,7 +126,6 @@ if uploaded_files and job_description:
 
             results.append(result)
 
-            # Log to CSV
             log_path = "data/logs.csv"
             file_exists = os.path.isfile(log_path)
             with open(log_path, mode="a", newline="", encoding="utf-8") as f:
@@ -136,17 +134,12 @@ if uploaded_files and job_description:
                     writer.writeheader()
                 writer.writerow(result)
 
-            # Add resume to zip if score >= 60
             if result["FitScore"] >= score_threshold:
                 zipf.write(file_path, arcname=filename.name)
 
             progress.progress((i + 1) / len(uploaded_files), text=f"Processed {i + 1}/{len(uploaded_files)} resumes")
 
-            progress.progress((i + 1) / len(uploaded_files), text=f"Processed {i + 1}/{len(uploaded_files)} resumes")
-
     df = pd.DataFrame(results).sort_values(by="FitScore", ascending=False).reset_index(drop=True)
-    # Add clickable links to resumes
-    df["ResumeFile"] = df["ResumeFile"].apply(lambda x: f"[📄 {x}](data/{x})")
     st.markdown("""
         <h3 style='font-family:sans-serif;'>🏆 Top Resume Matches</h3>
     """, unsafe_allow_html=True)
@@ -157,16 +150,6 @@ if uploaded_files and job_description:
     """, unsafe_allow_html=True)
     top_n = st.slider("Choose how many top resumes to view:", min_value=1, max_value=len(df), value=5, label_visibility="visible")
     top_df = df.head(top_n).reset_index(drop=True)
-
-    with st.expander("🔍 View Matched Resume Text with Highlighted Keywords"):
-        selected_resume = st.selectbox("Select a resume to preview:", top_df["ResumeFile"].apply(lambda x: x.replace('[📄 ', '').replace('](data/', '').replace(')', '')))
-        if selected_resume:
-            with open(f"data/{selected_resume}", "r", encoding="utf-8", errors="ignore") as f:
-                resume_text = f.read()
-            keyword_list = top_df[top_df["ResumeFile"].str.contains(selected_resume)]["MatchedKeywords"].values[0].split(", ")
-            for word in keyword_list:
-                resume_text = resume_text.replace(word, f"<mark style='background-color: #ffff66'>{word}</mark>")
-            st.markdown(f"<div style='font-family:sans-serif; font-size:14px; white-space:pre-wrap;'>{resume_text}</div>", unsafe_allow_html=True)
 
     st.markdown("""
         <h3 style='font-family:sans-serif;'>📧 Emails of Top Resumes</h3>
@@ -200,28 +183,3 @@ if uploaded_files and job_description:
 
     csv_all = df.to_csv(index=False).encode("utf-8")
     st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv")
-
-    with st.expander("📊 Insights Dashboard"):
-        import matplotlib.pyplot as plt # type: ignore
-        from collections import Counter
-
-        st.write("### 📈 Resume Score Distribution")
-        fig, ax = plt.subplots()
-        df["FitScore"].plot(kind='hist', bins=10, edgecolor='black', ax=ax)
-        ax.set_xlabel("Fit Score")
-        ax.set_ylabel("Count")
-        st.pyplot(fig)
-
-        st.write("### 🔍 Top Matched Keywords")
-        all_keywords = ", ".join(df["MatchedKeywords"].dropna()).split(", ")
-        top_keywords = Counter([k.strip() for k in all_keywords if k.strip()])
-        top_df_kw = pd.DataFrame(top_keywords.items(), columns=["Keyword", "Count"]).sort_values(by="Count", ascending=False).head(10)
-        st.bar_chart(top_df_kw.set_index("Keyword"))
-
-        st.write("### ⚠️ Bias Detection Summary")
-        bias_df = df[["ResumeFile", "GenderedWords", "AgeIndicators"]]
-        st.dataframe(bias_df)
-
-    with open(zip_path, "rb") as zf:
-        zip_label = f"🗜️ Download Zipped Resumes (Fit ≥ {score_threshold}%) — {len([r for r in results if r['FitScore'] >= score_threshold])} files"
-        st.download_button(zip_label, zf, file_name="top_resumes.zip", mime="application/zip")
