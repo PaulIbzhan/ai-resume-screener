@@ -47,7 +47,7 @@ with st.expander("⚙️ App Settings"):
 
     if st.button("🔄 Reset Settings"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
 # 📂 File Upload
 st.markdown("""
@@ -86,6 +86,8 @@ else:
             st.toast("🧹 Logs cleared on app start", icon="🧾")
     except Exception as e:
         st.warning(f"Log cleaner error: {e}")
+except Exception as e:
+    st.warning(f"Log cleaner error: {e}")
 
 if uploaded_files and job_description:
     os.makedirs("data", exist_ok=True)  # ✅ Ensure 'data' folder exists
@@ -143,10 +145,6 @@ if uploaded_files and job_description:
             progress.progress((i + 1) / len(uploaded_files), text=f"Processed {i + 1}/{len(uploaded_files)} resumes")
 
             progress.progress((i + 1) / len(uploaded_files), text=f"Processed {i + 1}/{len(uploaded_files)} resumes")
-            writer = csv.DictWriter(f, fieldnames=result.keys())
-            if not file_exists:
-                writer.writeheader()
-            writer.writerow(result)
 
     df = pd.DataFrame(results).sort_values(by="FitScore", ascending=False).reset_index(drop=True)
     # Add clickable links to resumes
@@ -206,7 +204,7 @@ if uploaded_files and job_description:
     st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv")
 
     with st.expander("📊 Insights Dashboard"):
-        import matplotlib.pyplot as plt # type: ignore
+        import matplotlib.pyplot as plt
         from collections import Counter
 
         st.write("### 📈 Resume Score Distribution")
