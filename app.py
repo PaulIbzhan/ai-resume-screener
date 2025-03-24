@@ -10,13 +10,14 @@ from src.match_score import get_fit_score
 from src.bias_checker import detect_bias
 from src.explain import get_shap_values
 
-os.makedirs("data", exist_ok=True)
-
 st.set_page_config(page_title="AI Resume Screener", layout="wide")
 
 st.markdown("""
     <style>
     html, body, [class*="css"]  {
+        font-family: 'sans-serif' !important;
+    }
+    label, input, textarea, .stTextInput > div > div, .stTextArea > div > textarea, .stMarkdown, .stButton > button {
         font-family: 'sans-serif' !important;
     }
     </style>
@@ -31,7 +32,7 @@ st.markdown("""
     <h3 style='font-family:sans-serif; font-weight:bold;'>📌 Job Information</h3>
 """, unsafe_allow_html=True)
 
-job_title = st.text_input("🧠 Job Title", placeholder="e.g., Senior Data Analyst (Remote)", label_visibility="visible")
+job_title = st.text_input("🧠 Job Title", placeholder=" ", label_visibility="visible")
 job_description = st.text_area("📋 Job Description", placeholder="Paste the full JD here...", label_visibility="visible")
 
 # 📂 File Upload
@@ -39,7 +40,14 @@ st.markdown("""
     <h4 style='font-family:sans-serif;'>📁 Upload Resumes (PDF/DOCX)</h4>
 """, unsafe_allow_html=True)
 
-uploaded_files = st.file_uploader("Drag and drop files here", type=["pdf", "docx"], accept_multiple_files=True, label_visibility="visible")
+uploaded_files = st.file_uploader(
+    "Drag and drop files here (PDF or DOCX only)",
+    type=["pdf", "docx"],
+    accept_multiple_files=True,
+    label_visibility="visible"
+)
+
+st.markdown("✅ <span style='font-family:sans-serif;'>Supported formats: PDF, DOCX</span>", unsafe_allow_html=True)
 
 def extract_email(text):
     emails = re.findall(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
@@ -48,8 +56,19 @@ def extract_email(text):
 results = []
 
 if uploaded_files and job_description:
-    for file in uploaded_files:
-        file_path = f"data/{file.name}"
+    os.makedirs("data", exist_ok=True)  # ✅ Ensure 'data' folder exists
+
+    import pathlib
+
+for file in uploaded_files:
+    filename = pathlib.Path(file.name)
+    ext = filename.suffix.lower()
+
+    if ext not in [".pdf", ".docx"]:
+        st.warning(f"❌ Unsupported file type: {ext}. Please upload PDF or DOCX.")
+        continue
+
+    file_path = f"data/{filename.name}"
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
 
