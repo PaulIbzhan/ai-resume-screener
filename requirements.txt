@@ -1,0 +1,10 @@
+streamlit
+pandas
+scikit-learn
+matplotlib
+python-docx
+PyPDF2
+spacy
+shap
+email-validator
+pdfplumber
