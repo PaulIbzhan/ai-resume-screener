@@ -6,6 +6,7 @@ python-docx
 PyPDF2
 spacy
 shap
-email-validator
-pdfplumber
 sentence-transformers
+pdfplumber
+email-validator
+pathlib
