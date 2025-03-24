@@ -11,17 +11,25 @@ from src.bias_checker import detect_bias
 from src.explain import get_shap_values
 
 st.set_page_config(page_title="AI Resume Screener", layout="wide")
-st.title("📄 AI-Powered Resume Screener")
+st.markdown("""
+    <h2 style='font-family:sans-serif; font-weight:bold;'>📄 AI-Powered Resume Screener</h2>
+""", unsafe_allow_html=True)
 
-# 📌 Job Title & Description (separated)
-st.markdown("### 📌 Job Information")
+# 📌 Job Title & Description
+st.markdown("""
+    <h3 style='font-family:sans-serif; font-weight:bold;'>📌 Job Information</h3>
+""", unsafe_allow_html=True)
+
 job_title = st.text_input("🧠 Job Title", placeholder="e.g., Senior Data Analyst (Remote)")
 job_description = st.text_area("📋 Job Description", placeholder="Paste the full JD here...")
 
 # 📂 File Upload
-uploaded_files = st.file_uploader("📂 Upload Resumes (PDF/DOCX)", type=["pdf", "docx"], accept_multiple_files=True)
+st.markdown("""
+    <h4 style='font-family:sans-serif;'>📁 Upload Resumes (PDF/DOCX)</h4>
+""", unsafe_allow_html=True)
 
-# 📧 Email Extractor
+uploaded_files = st.file_uploader("Drag and drop files here", type=["pdf", "docx"], accept_multiple_files=True)
+
 def extract_email(text):
     emails = re.findall(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
     return emails[0] if emails else "Not found"
@@ -61,23 +69,26 @@ if uploaded_files and job_description:
                 writer.writeheader()
             writer.writerow(result)
 
-    # 📊 Display All Matches
     df = pd.DataFrame(results).sort_values(by="FitScore", ascending=False).reset_index(drop=True)
-    st.markdown("### 🏆 Top Resume Matches")
+    st.markdown("""
+        <h3 style='font-family:sans-serif;'>🏆 Top Resume Matches</h3>
+    """, unsafe_allow_html=True)
     st.dataframe(df.style.hide(axis="index"))
 
-    # 🔢 Top-N Selector
-    st.markdown("### 🔢 Select Top N Resumes")
+    st.markdown("""
+        <h3 style='font-family:sans-serif;'>🔢 Select Top N Resumes</h3>
+    """, unsafe_allow_html=True)
     top_n = st.slider("Choose how many top resumes to view:", min_value=1, max_value=len(df), value=5)
     top_df = df.head(top_n).reset_index(drop=True)
 
-    # 📧 Show Emails of Top-N
-    st.markdown("### 📧 Emails of Top Resumes")
+    st.markdown("""
+        <h3 style='font-family:sans-serif;'>📧 Emails of Top Resumes</h3>
+    """, unsafe_allow_html=True)
     st.dataframe(top_df[["ResumeFile", "Email"]].style.hide(axis="index"))
 
-    # 📤 Gmail Redirect with Styled Button
-    st.markdown("### 📤 Mail Top Resumes via Gmail")
-
+    st.markdown("""
+        <h3 style='font-family:sans-serif;'>📤 Mail Top Resumes via Gmail</h3>
+    """, unsafe_allow_html=True)
     valid_emails = [email for email in top_df["Email"] if email != "Not found"]
     subject_text = f"Regarding Your Application for: {job_title.strip() or 'a recent opportunity'}"
     encoded_subject = urllib.parse.quote(subject_text)
@@ -98,9 +109,7 @@ if uploaded_files and job_description:
         </a>
     """, unsafe_allow_html=True)
 
-    # ⬜ Small Space
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # 📥 Download All Resume Scores
     csv_all = df.to_csv(index=False).encode("utf-8")
     st.download_button("📥 Download All Resume Scores (CSV)", csv_all, "all_resume_scores.csv", "text/csv")
